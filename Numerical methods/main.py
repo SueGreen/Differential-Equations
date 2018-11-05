@@ -1,9 +1,196 @@
+import os
 import sys
+from tkinter.ttk import Entry, Button
 
-import matplotlib
 import numpy as np
 from math import e, log
 from matplotlib import pyplot as plt
+import tkinter as tk
+from tkinter import ttk
+import matplotlib
+import urllib
+import json
+import pandas as pd
+
+matplotlib.use("TkAgg")
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+from matplotlib.figure import Figure
+
+LARGE_FONT = ("Verdana", 12)
+NORM_FONT = ("Helvetica", 10)
+SMALL_FONT = ("Helvetica", 8)
+import matplotlib.animation as animation
+from matplotlib import style
+
+style.use('ggplot')
+
+# f = Figure(figsize=(5, 4), dpi=100)
+f = plt.figure()
+a = f.add_subplot(111)
+
+
+def animate(i):
+    pullData = open('sampleText.txt', 'r').read()
+    dataArray = pullData.split('\n')
+    xar = []
+    exact_func_ar = []
+    for eachLine in dataArray:
+        x, y = eachLine.split(',')
+        xar.append(float(x))
+        exact_func_ar.append(float(y))
+    a.clear()
+    euler_animate()
+    a.plot(xar, exact_func_ar, 'b')
+    a.set_title("Plots of the function")
+    a.set_xlabel('x')
+    a.set_ylabel('y')
+    f.legend(['Runge-Kutta', 'Improved Euler', 'Euler', 'Exact'])
+    f.tight_layout()
+
+
+def euler_animate():
+    pullData = open('EulerText.txt', 'r').read()
+    dataArray = pullData.split('\n')
+    xar = []
+    euler_func_ar = []
+    for eachLine in dataArray:
+        x, y = eachLine.split(',')
+        xar.append(float(x))
+        euler_func_ar.append(float(y))
+    improved_euler_animate()
+    a.plot(xar, euler_func_ar, 'g')
+
+
+def improved_euler_animate():
+    pullData = open('ImprovedEulerText.txt', 'r').read()
+    dataArray = pullData.split('\n')
+    xar = []
+    improved_euler_func_ar = []
+    for eachLine in dataArray:
+        x, y = eachLine.split(',')
+        xar.append(float(x))
+        improved_euler_func_ar.append(float(y))
+    runge_kutta_animate()
+    a.plot(xar, improved_euler_func_ar, 'c')
+
+
+def runge_kutta_animate():
+    pullData = open('RungeKuttaText.txt', 'r').read()
+    dataArray = pullData.split('\n')
+    xar = []
+    runge_kutta_func_ar = []
+    for eachLine in dataArray:
+        x, y = eachLine.split(',')
+        xar.append(float(x))
+        runge_kutta_func_ar.append(float(y))
+    a.plot(xar, runge_kutta_func_ar, 'm')
+
+
+class SeaofBTCapp(tk.Tk):
+
+    def __init__(self, *args, **kwargs):
+        tk.Tk.__init__(self, *args, **kwargs)
+        tk.Tk.wm_title(self, "DE assignment")
+        container = tk.Frame(self)
+
+        container.pack(side="top", fill="both", expand=True)
+
+        container.grid_rowconfigure(0, weight=1)
+        container.grid_columnconfigure(0, weight=1)
+
+        menubar = tk.Menu(container)
+        filemenu = tk.Menu(menubar, tearoff=0)
+        filemenu.add_command(label="Save settings", command=lambda: popupmsg("Not supported just yet!"))
+        filemenu.add_separator()
+        filemenu.add_command(label="Exit", command=quit)
+        menubar.add_cascade(label="File", menu=filemenu)
+        tk.Tk.config(self, menu=menubar)
+
+        self.frames = {}
+
+        for F in (StartPage, BTCe_Page):
+            frame = F(container, self)
+
+            self.frames[F] = frame
+
+            frame.grid(row=0, column=0, sticky="nsew")
+
+        self.show_frame(StartPage)
+
+    def show_frame(self, cont):
+        frame = self.frames[cont]
+        frame.tkraise()
+
+
+class StartPage(tk.Frame):
+
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        label = tk.Label(self, text="Start Page", font=LARGE_FONT)
+        label.pack(pady=10, padx=10)
+
+        button = ttk.Button(self, text="Visit Error graph page",
+                            command=lambda: controller.show_frame(PageOne))
+        button.pack()
+        button2 = ttk.Button(self, text="Graph Page",
+                             command=lambda: controller.show_frame(BTCe_Page))
+        button2.pack()
+        e1 = Entry()
+        e1.pack()
+        e1.focus_set()
+
+        def callback():
+            the_file = open("input.txt", 'w')
+            the_file.write(e1.get())
+            the_file.close()
+
+            print(e1.get())
+
+        b = Button(text='Enter n and press the button', command=callback)
+        b.pack()
+
+
+class PageOne(tk.Frame):
+
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        label = tk.Label(self, text="Page One!!!", font=LARGE_FONT)
+        label.pack(pady=10, padx=10)
+
+        button1 = ttk.Button(self, text="Back to Home",
+                             command=lambda: controller.show_frame(StartPage))
+        button1.pack()
+
+
+class BTCe_Page(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        label = tk.Label(self, text="Graph Page!", font=LARGE_FONT)
+        label.pack(pady=10, padx=10)
+
+        button1 = ttk.Button(self, text="Back to Home",
+                             command=lambda: controller.show_frame(StartPage))
+        button1.pack()
+
+        canvas = FigureCanvasTkAgg(f, self)
+        canvas.draw()
+        canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
+
+        toolbar = NavigationToolbar2Tk(canvas, self)
+        toolbar.update()
+        canvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
+
+app = SeaofBTCapp()
+
+import os
+import sys
+import numpy as np
+from math import e, log
+from matplotlib import pyplot as plt
+import tkinter as tk
+from tkinter import ttk
+import matplotlib
 
 
 class My_function:
@@ -108,7 +295,9 @@ class Init:
         self.last_y = self.exact_func[0]
 
 
-n = 50
+my_file = open("input.txt", "r")
+n = int(my_file.read())
+# n = 25
 init = Init()
 init.init(1.6, -1.289138015374262, 7)
 my_funct = My_function()
@@ -120,17 +309,38 @@ exact.exact_solution()
 euler.euler_method()
 improved.improved_euler_method()
 runge_kutta.runge_kutta_method()
+my_file = open("sampleText.txt", "w")
+i = 0
+for i in range(n - 1):
+    string = str(init.x[i]) + ", " + str(exact.exact_func[i])
+    my_file.write(string + "\n")
+my_file.write(str(init.x[n - 1]) + ", " + str(exact.exact_func[n - 1]))
+my_file.close()
+my_file = open("EulerText.txt", "w")
+i = 0
+for i in range(n - 1):
+    string = str(init.x[i]) + ", " + str(euler.euler_func[i])
+    my_file.write(string + "\n")
+my_file.write(str(init.x[n - 1]) + ", " + str(euler.euler_func[n - 1]))
+my_file.close()
 
-fig = plt.figure()
-plt.plot(init.x, exact.exact_func, 'b', label='Exact')
-plt.plot(init.x, euler.euler_func, 'g', label='Euler')
-plt.plot(init.x, improved.improved_euler_func, 'c', label='Improved Euler')
-plt.plot(init.x, runge_kutta.runge_kutta_func, 'm', label='Runge-Kutta')
-plt.xlabel('x axis')
-plt.ylabel('y axis')
-plt.title('Plots of the given function')
-plt.legend()
+my_file = open("ImprovedEulerText.txt", "w")
+i = 0
+for i in range(n - 1):
+    string = str(init.x[i]) + ", " + str(improved.improved_euler_func[i])
+    my_file.write(string + "\n")
+my_file.write(str(init.x[n - 1]) + ", " + str(improved.improved_euler_func[n - 1]))
+my_file.close()
 
-plt.show()
+my_file = open("RungeKuttaText.txt", "w")
+i = 0
+for i in range(n - 1):
+    string = str(init.x[i]) + ", " + str(runge_kutta.runge_kutta_func[i])
+    my_file.write(string + "\n")
+my_file.write(str(init.x[n - 1]) + ", " + str(runge_kutta.runge_kutta_func[n - 1]))
+my_file.close()
 
-# fig.savefig('test.jpg')
+# todo
+
+ani = animation.FuncAnimation(f, animate, interval=1000)
+app.mainloop()
